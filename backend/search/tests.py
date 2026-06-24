@@ -93,6 +93,8 @@ class TestSearchService:
         assert result["search_type"] == "repositories"
         assert result["query"] == "django"
         assert result["cached"] is False
+        assert result["page"] == 1
+        assert result["per_page"] == 24
         assert len(result["results"]) == 1
         assert result["results"][0]["name"] == "django"
         mock_cache.set.assert_called_once()
@@ -155,10 +157,72 @@ class TestSearchService:
         mock_cache.get.return_value = None
 
         from search.services import _cache_key
-        key1 = _cache_key("users", "Django")
-        key2 = _cache_key("users", "django")
+        key1 = _cache_key("users", "Django", 1)
+        key2 = _cache_key("users", "django", 1)
 
         assert key1 == key2
+
+    @patch("search.services.cache")
+    @patch("search.services.requests.get")
+    def test_fetch_repositories_page_2(self, mock_get, mock_cache, mock_repo_response):
+        mock_cache.get.return_value = None
+        mock_get.return_value = MagicMock(
+            status_code=200,
+            json=lambda: mock_repo_response,
+        )
+        mock_get.return_value.raise_for_status = MagicMock()
+
+        from search.services import search_github
+        result = search_github("repositories", "django", page=2)
+
+        assert result["page"] == 2
+        mock_get.assert_called_once()
+        assert mock_get.call_args.kwargs["params"]["page"] == 2
+        cache_key = mock_cache.set.call_args[0][0]
+        assert cache_key.endswith(":2")
+
+    @patch("search.services.cache")
+    def test_cache_key_includes_page(self, mock_cache):
+        from search.services import _cache_key
+
+        assert _cache_key("users", "django", 1) != _cache_key("users", "django", 2)
+
+    @patch("search.services.cache")
+    @patch("search.services.requests.get")
+    def test_fetch_users_page_2(self, mock_get, mock_cache, mock_user_response):
+        mock_cache.get.return_value = None
+        mock_get.return_value = MagicMock(
+            status_code=200,
+            json=lambda: mock_user_response,
+        )
+        mock_get.return_value.raise_for_status = MagicMock()
+
+        from search.services import search_github
+        result = search_github("users", "torvalds", page=2)
+
+        assert result["page"] == 2
+        assert mock_get.call_args.kwargs["params"]["page"] == 2
+
+    @patch("search.services.cache")
+    def test_cached_payload_preserves_page(self, mock_cache):
+        cached_data = {
+            "results": [],
+            "total_count": 50,
+            "page": 2,
+            "per_page": 24,
+            "cached": False,
+            "search_type": "repositories",
+            "query": "django",
+        }
+        mock_cache.get.return_value = cached_data
+
+        from search.services import search_github
+        result = search_github("repositories", "django", page=2)
+
+        assert result["cached"] is True
+        assert result["page"] == 2
+        assert result["per_page"] == 24
+        mock_cache.set.assert_not_called()
 
     @patch("search.services.get_redis_connection")
     def test_clear_cache_deletes_keys(self, mock_redis_conn):
@@ -195,6 +259,8 @@ class TestSearchView:
         mock_service.return_value = {
             "results": [],
             "total_count": 0,
+            "page": 1,
+            "per_page": 24,
             "cached": False,
             "search_type": "repositories",
             "query": "django",
@@ -206,11 +272,52 @@ class TestSearchView:
         )
         assert response.status_code == 200
         assert response.data["search_type"] == "repositories"
+        assert response.data["page"] == 1
+        assert response.data["per_page"] == 24
+        mock_service.assert_called_once_with("repositories", "django", 1)
+
+    @patch("search.views.search_github")
+    def test_search_with_page(self, mock_service, client):
+        mock_service.return_value = {
+            "results": [],
+            "total_count": 50,
+            "page": 2,
+            "per_page": 24,
+            "cached": False,
+            "search_type": "repositories",
+            "query": "django",
+        }
+        response = client.post(
+            reverse("search"),
+            {"query": "django", "search_type": "repositories", "page": 2},
+            format="json",
+        )
+        assert response.status_code == 200
+        assert response.data["page"] == 2
+        assert response.data["per_page"] == 24
+        assert response.data["total_count"] == 50
+        mock_service.assert_called_once_with("repositories", "django", 2)
+
+    def test_search_invalid_page(self, client):
+        response = client.post(
+            reverse("search"),
+            {"query": "django", "search_type": "repositories", "page": 0},
+            format="json",
+        )
+        assert response.status_code == 400
 
     def test_search_query_too_short(self, client):
         response = client.post(
             reverse("search"),
             {"query": "dj", "search_type": "repositories"},
+            format="json",
+        )
+        assert response.status_code == 400
+
+    def test_search_page_over_max(self, client):
+        response = client.post(
+            reverse("search"),
+            {"query": "django", "search_type": "repositories", "page": 101},
             format="json",
         )
         assert response.status_code == 400
@@ -232,6 +339,8 @@ class TestSearchView:
         mock_service.return_value = {
             "results": [],
             "total_count": 0,
+            "page": 1,
+            "per_page": 24,
             "cached": False,
             "search_type": "issues",
             "query": "django",

@@ -1,0 +1,44 @@
+@use '../../../styles/variables' as *;
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+  margin-top: $spacing-xl;
+  padding-top: $spacing-lg;
+  border-top: 1px solid $color-border;
+}
+
+.label {
+  color: $color-muted;
+  font-size: 0.95rem;
+  min-width: 8rem;
+  text-align: center;
+}
+
+.button {
+  padding: 0.5rem 1.25rem;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface;
+  color: $color-text;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:hover:not(:disabled) {
+    border-color: $color-accent;
+    background: rgba($color-accent, 0.08);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}

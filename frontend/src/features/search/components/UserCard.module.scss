@@ -1,0 +1,63 @@
+@use '../../../styles/variables' as *;
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-lg;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
+  background: $color-surface;
+  text-align: center;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    border-color: $color-accent;
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 2px;
+  }
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  width: 100%;
+}
+
+.name {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.type {
+  margin: 0;
+  color: $color-accent;
+  font-size: 0.8rem;
+  text-transform: capitalize;
+}
+
+.location {
+  margin: 0;
+  color: $color-muted;
+  font-size: 0.9rem;
+}
+
+.link {
+  margin-top: $spacing-sm;
+  color: $color-accent;
+  font-size: 0.875rem;
+}

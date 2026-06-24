@@ -1,0 +1,108 @@
+@use '../../../styles/variables' as *;
+
+.form {
+  width: 100%;
+}
+
+.formCentered {
+  max-width: 520px;
+  margin: 0 auto;
+  text-align: center;
+
+  .controls {
+    justify-content: center;
+  }
+
+  .title {
+    font-size: 2.25rem;
+    margin-bottom: $spacing-sm;
+  }
+}
+
+.formExpanded {
+  max-width: none;
+}
+
+.formCompact {
+  .title {
+    font-size: 1.35rem;
+    margin-bottom: $spacing-sm;
+  }
+}
+
+.title {
+  margin: 0 0 $spacing-md;
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  margin: 0 0 $spacing-xl;
+  color: $color-muted;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.hint {
+  margin: $spacing-md 0 0;
+  color: $color-muted;
+  font-size: 0.875rem;
+  opacity: 0.85;
+}
+
+.controls {
+  display: flex;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.input {
+  flex: 1 1 240px;
+  min-width: 0;
+  height: 2.875rem;
+  padding: 0 1rem;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface;
+  color: $color-text;
+
+  &::placeholder {
+    color: $color-muted;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 1px;
+  }
+}
+
+.selectWrapper {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+.select {
+  min-width: 9.5rem;
+  height: 2.875rem;
+  padding: 0 2.25rem 0 1rem;
+  border: 1px solid $color-border;
+  border-radius: $radius-md;
+  background-color: $color-surface;
+  color: $color-text;
+  cursor: pointer;
+  line-height: 1.25;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M2.5 4.5L6 8L9.5 4.5' stroke='%238b949e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 12px 12px;
+
+  &:focus-visible {
+    outline: 2px solid $color-accent;
+    outline-offset: 1px;
+  }
+}

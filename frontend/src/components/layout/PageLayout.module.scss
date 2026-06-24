@@ -1,0 +1,29 @@
+@use '../../styles/variables' as *;
+
+.page {
+  min-height: 100vh;
+  padding: $spacing-xl $spacing-md;
+}
+
+.pageCentered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pageResults {
+  padding-top: $spacing-md;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+.pageCentered .container {
+  align-items: center;
+}

@@ -1,0 +1,27 @@
+@use '../styles/variables' as *;
+
+.heroHeader {
+  width: 100%;
+}
+
+.stickyHeader {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: 0 (-$spacing-md) $spacing-sm;
+  padding: $spacing-md $spacing-md $spacing-lg;
+  background: rgba($color-bg, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid $color-border;
+}
+
+.subtitle {
+  margin: $spacing-md 0 0;
+  color: $color-muted;
+  font-size: 0.95rem;
+}
+
+.results {
+  width: 100%;
+  min-width: 0;
+}

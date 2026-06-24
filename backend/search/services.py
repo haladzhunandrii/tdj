@@ -4,10 +4,11 @@ from django.conf import settings
 from django_redis import get_redis_connection
 
 GITHUB_API_URL = "https://api.github.com/search"
+PER_PAGE = 24
 
 
-def _cache_key(search_type: str, query: str) -> str:
-    return f"github_search:{search_type}:{query.lower().strip()}"
+def _cache_key(search_type: str, query: str, page: int = 1) -> str:
+    return f"github_search:{search_type}:{query.lower().strip()}:{page}"
 
 
 def _github_headers() -> dict:
@@ -20,11 +21,11 @@ def _github_headers() -> dict:
     return headers
 
 
-def _fetch_users(query: str) -> list:
+def _fetch_users(query: str, page: int) -> list:
     response = requests.get(
         f"{GITHUB_API_URL}/users",
         headers=_github_headers(),
-        params={"q": query, "per_page": 24},
+        params={"q": query, "per_page": PER_PAGE, "page": page},
         timeout=10,
     )
     response.raise_for_status()
@@ -43,11 +44,11 @@ def _fetch_users(query: str) -> list:
     ], data.get("total_count", 0)
 
 
-def _fetch_repositories(query: str) -> list:
+def _fetch_repositories(query: str, page: int) -> list:
     response = requests.get(
         f"{GITHUB_API_URL}/repositories",
         headers=_github_headers(),
-        params={"q": query, "per_page": 24},
+        params={"q": query, "per_page": PER_PAGE, "page": page},
         timeout=10,
     )
     response.raise_for_status()
@@ -76,11 +77,11 @@ def _fetch_repositories(query: str) -> list:
     ], data.get("total_count", 0)
 
 
-def _fetch_issues(query: str) -> list:
+def _fetch_issues(query: str, page: int) -> list:
     response = requests.get(
         f"{GITHUB_API_URL}/issues",
         headers=_github_headers(),
-        params={"q": query, "per_page": 24},
+        params={"q": query, "per_page": PER_PAGE, "page": page},
         timeout=10,
     )
     response.raise_for_status()
@@ -107,8 +108,8 @@ def _fetch_issues(query: str) -> list:
     ], data.get("total_count", 0)
 
 
-def search_github(search_type: str, query: str) -> dict:
-    key = _cache_key(search_type, query)
+def search_github(search_type: str, query: str, page: int = 1) -> dict:
+    key = _cache_key(search_type, query, page)
     cached = cache.get(key)
 
     if cached:
@@ -120,11 +121,13 @@ def search_github(search_type: str, query: str) -> dict:
         "repositories": _fetch_repositories,
         "issues": _fetch_issues,
     }
-    results, total_count = fetchers[search_type](query)
+    results, total_count = fetchers[search_type](query, page)
 
     payload = {
         "results": results,
         "total_count": total_count,
+        "page": page,
+        "per_page": PER_PAGE,
         "cached": False,
         "search_type": search_type,
         "query": query,

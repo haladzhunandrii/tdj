@@ -34,9 +34,10 @@ class SearchView(APIView):
 
         query = serializer.validated_data["query"]
         search_type = serializer.validated_data["search_type"]
+        page = serializer.validated_data.get("page", 1)
 
         try:
-            result = search_github(search_type, query)
+            result = search_github(search_type, query, page)
             return Response(result, status=status.HTTP_200_OK)
         except requests.exceptions.Timeout:
             return Response(
