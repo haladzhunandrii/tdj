@@ -37,6 +37,7 @@ def _fetch_users(query: str) -> list:
             "avatar_url": user["avatar_url"],
             "html_url": user["html_url"],
             "type": user["type"],
+            "location": user.get("location", None),
         }
         for user in data.get("items", [])
     ], data.get("total_count", 0)
@@ -60,9 +61,12 @@ def _fetch_repositories(query: str) -> list:
             "html_url": repo["html_url"],
             "description": repo["description"],
             "stargazers_count": repo["stargazers_count"],
+            "stars_count": repo["stargazers_count"],
             "forks_count": repo["forks_count"],
             "language": repo["language"],
             "updated_at": repo["updated_at"],
+            "owner_login": repo["owner"]["login"],
+            "owner_avatar_url": repo["owner"]["avatar_url"],
             "owner": {
                 "login": repo["owner"]["login"],
                 "avatar_url": repo["owner"]["avatar_url"],
@@ -91,6 +95,8 @@ def _fetch_issues(query: str) -> list:
             "state": issue["state"],
             "created_at": issue["created_at"],
             "updated_at": issue["updated_at"],
+            "user_login": issue["user"]["login"],
+            "user_avatar_url": issue["user"]["avatar_url"],
             "user": {
                 "login": issue["user"]["login"],
                 "avatar_url": issue["user"]["avatar_url"],

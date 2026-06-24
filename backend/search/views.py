@@ -44,7 +44,7 @@ class SearchView(APIView):
                 status=status.HTTP_504_GATEWAY_TIMEOUT,
             )
         except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 403:
+            if e.response is not None and e.response.status_code in (403, 429):
                 return Response(
                     {"error": "GitHub API rate limit exceeded. Please try again later."},
                     status=status.HTTP_429_TOO_MANY_REQUESTS,
