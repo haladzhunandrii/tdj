@@ -6,25 +6,56 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ─── Core ────────────────────────────────────────────────────────────────────
+
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "fallback-dev-key")
 DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",")
+
+# ─── Apps & Middleware ────────────────────────────────────────────────────────
 
 INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.auth",
+    "corsheaders",
     "rest_framework",
     "drf_spectacular",
     "search",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
 ]
 
+# ─── CORS ─────────────────────────────────────────────────────────────────────
+
+CORS_ALLOWED_ORIGINS = os.getenv(
+    "CORS_ALLOWED_ORIGINS",
+    "http://localhost:3000,http://localhost:5173",
+).split(",")
+CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS"]
+
+# ─── URLs & Templates ─────────────────────────────────────────────────────────
+
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+            ],
+        },
+    },
+]
+
+# ─── Database ─────────────────────────────────────────────────────────────────
 
 DATABASES = {
     "default": {
@@ -32,6 +63,8 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+# ─── Cache (Redis) ────────────────────────────────────────────────────────────
 
 CACHES = {
     "default": {
@@ -43,9 +76,13 @@ CACHES = {
     }
 }
 
-CACHE_TTL = int(os.getenv("CACHE_TTL", 7200))
+CACHE_TTL = int(os.getenv("CACHE_TTL", 7200))  # 2 hours
+
+# ─── GitHub ───────────────────────────────────────────────────────────────────
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+
+# ─── DRF & Swagger ───────────────────────────────────────────────────────────
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
@@ -54,8 +91,11 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "GitHub Search API",
-    "DESCRIPTION": "Search GitHub users and repositories with Redis caching",
+    "DESCRIPTION": "Search GitHub users and repositories with Redis caching.",
     "VERSION": "1.0.0",
 }
 
+# ─── Misc ─────────────────────────────────────────────────────────────────────
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+USE_TZ = True
