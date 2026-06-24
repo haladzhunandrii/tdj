@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-SEARCH_TYPES = ["users", "repositories"]
+SEARCH_TYPES = ["users", "repositories", "issues"]
 
 
 class SearchRequestSerializer(serializers.Serializer):

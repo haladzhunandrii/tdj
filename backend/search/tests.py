@@ -50,6 +50,28 @@ def mock_user_response():
         ],
     }
 
+@pytest.fixture
+def mock_issue_response():
+    return {
+        "total_count": 1,
+        "items": [
+            {
+                "id": 1,
+                "number": 42,
+                "title": "Fix memory leak in middleware",
+                "html_url": "https://github.com/django/django/issues/42",
+                "state": "open",
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-01-02T00:00:00Z",
+                "user": {
+                    "login": "contributor",
+                    "avatar_url": "https://avatars.githubusercontent.com/u/99999",
+                },
+                "repository_url": "https://api.github.com/repos/django/django",
+            }
+        ],
+    }
+
 
 # ─── service tests ───────────────────────────────────────────────────────────
 
@@ -93,6 +115,24 @@ class TestSearchService:
         assert result["results"][0]["login"] == "torvalds"
 
     @patch("search.services.cache")
+    @patch("search.services.requests.get")
+    def test_fetch_issues_from_github(self, mock_get, mock_cache, mock_issue_response):
+        mock_cache.get.return_value = None
+        mock_get.return_value = MagicMock(
+            status_code=200,
+            json=lambda: mock_issue_response,
+        )
+        mock_get.return_value.raise_for_status = MagicMock()
+
+        from search.services import search_github
+        result = search_github("issues", "django")
+
+        assert result["search_type"] == "issues"
+        assert len(result["results"]) == 1
+        assert result["results"][0]["title"] == "Fix memory leak in middleware"
+        assert result["results"][0]["state"] == "open"
+
+    @patch("search.services.cache")
     def test_returns_cached_result(self, mock_cache):
         cached_data = {
             "results": [],
@@ -107,7 +147,7 @@ class TestSearchService:
         result = search_github("users", "torvalds")
 
         assert result["cached"] is True
-        # GitHub не викликався — кеш спрацював
+        # GitHub was not called — cache hit
         mock_cache.set.assert_not_called()
 
     @patch("search.services.cache")
@@ -182,10 +222,27 @@ class TestSearchView:
     def test_search_invalid_type(self, client):
         response = client.post(
             reverse("search"),
-            {"query": "django", "search_type": "issues"},
+            {"query": "django", "search_type": "pullrequests"},
             format="json",
         )
         assert response.status_code == 400
+
+    @patch("search.views.search_github")
+    def test_search_issues_returns_200(self, mock_service, client):
+        mock_service.return_value = {
+            "results": [],
+            "total_count": 0,
+            "cached": False,
+            "search_type": "issues",
+            "query": "django",
+        }
+        response = client.post(
+            reverse("search"),
+            {"query": "django", "search_type": "issues"},
+            format="json",
+        )
+        assert response.status_code == 200
+        assert response.data["search_type"] == "issues"
 
     @patch("search.views.search_github")
     def test_search_github_timeout(self, mock_service, client):

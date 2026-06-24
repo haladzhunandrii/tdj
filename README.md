@@ -59,7 +59,7 @@ A fullstack single-page application for searching GitHub users and repositories,
 }
 ```
 - `query` — string, min 3 chars, max 256 chars (**required**)
-- `search_type` — `"users"` or `"repositories"` (**required**)
+- `search_type` — `"users"`, `"repositories"`, or `"issues"` (**required**)
 
 **Response 200:**
 ```json
@@ -94,7 +94,7 @@ A fullstack single-page application for searching GitHub users and repositories,
 ```bash
 # Clone the repo
 git clone <your-repo-url>
-cd djj/backend
+cd tdj/backend
 
 # Create virtual environment
 python -m venv venv
@@ -143,8 +143,6 @@ All tests use mocks — **no Redis or GitHub API connection needed**.
 |---|---|---|
 | `DJANGO_SECRET_KEY` | `fallback-dev-key` | Django secret key |
 | `DJANGO_DEBUG` | `True` | Debug mode |
-| `DJANGO_ALLOWED_HOSTS` | `localhost` | Comma-separated allowed hosts |
 | `GITHUB_TOKEN` | *(empty)* | GitHub Personal Access Token (raises rate limit to 5000/h) |
 | `REDIS_URL` | `redis://localhost:6379/0` | Redis connection URL |
 | `CACHE_TTL` | `7200` | Cache TTL in seconds (2 hours) |
-| `CORS_ALLOWED_ORIGINS` | `http://localhost:3000,...` | Comma-separated allowed CORS origins |

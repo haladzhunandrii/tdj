@@ -72,6 +72,35 @@ def _fetch_repositories(query: str) -> list:
     ], data.get("total_count", 0)
 
 
+def _fetch_issues(query: str) -> list:
+    response = requests.get(
+        f"{GITHUB_API_URL}/issues",
+        headers=_github_headers(),
+        params={"q": query, "per_page": 24},
+        timeout=10,
+    )
+    response.raise_for_status()
+    data = response.json()
+
+    return [
+        {
+            "id": issue["id"],
+            "number": issue["number"],
+            "title": issue["title"],
+            "html_url": issue["html_url"],
+            "state": issue["state"],
+            "created_at": issue["created_at"],
+            "updated_at": issue["updated_at"],
+            "user": {
+                "login": issue["user"]["login"],
+                "avatar_url": issue["user"]["avatar_url"],
+            },
+            "repository_url": issue["repository_url"],
+        }
+        for issue in data.get("items", [])
+    ], data.get("total_count", 0)
+
+
 def search_github(search_type: str, query: str) -> dict:
     key = _cache_key(search_type, query)
     cached = cache.get(key)
@@ -80,10 +109,12 @@ def search_github(search_type: str, query: str) -> dict:
         cached["cached"] = True
         return cached
 
-    if search_type == "users":
-        results, total_count = _fetch_users(query)
-    else:
-        results, total_count = _fetch_repositories(query)
+    fetchers = {
+        "users": _fetch_users,
+        "repositories": _fetch_repositories,
+        "issues": _fetch_issues,
+    }
+    results, total_count = fetchers[search_type](query)
 
     payload = {
         "results": results,
